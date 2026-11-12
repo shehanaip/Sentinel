@@ -2,10 +2,11 @@
 
 import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { API_URL, apiFetch } from "@/lib/api";
+import { translate, type AppLanguage } from "@/lib/language";
 
 export type SessionUser = { id: string; name: string; email: string; avatar_data?: string; notify_uptime?: boolean; notify_security?: boolean; preferred_language?: string; country?: string; timezone?: string };
 type SessionState = "loading" | "authenticated" | "guest" | "unavailable";
-type SessionContextValue = { user: SessionUser | null; state: SessionState; refresh: () => Promise<void>; logout: () => Promise<void> };
+type SessionContextValue = { user: SessionUser | null; state: SessionState; refresh: () => Promise<void>; setPreferredLanguage: (language: AppLanguage) => void; logout: () => Promise<void> };
 const SessionContext = createContext<SessionContextValue | null>(null);
 
 export function SessionProvider({ children }: { children: ReactNode }) {
@@ -32,6 +33,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     setUser(null); setState("guest");
   }, []);
 
+  const setPreferredLanguage = useCallback((language: AppLanguage) => {
+    setUser(current => current ? { ...current, preferred_language: language } : current);
+  }, []);
+
   useEffect(() => {
     void refresh();
     const handleSessionChange = () => { void refresh(); };
@@ -39,12 +44,43 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("sentinel-session-changed", handleSessionChange);
   }, [refresh]);
 
-  const value = useMemo(() => ({ user, state, refresh, logout }), [user, state, refresh, logout]);
-  return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
+  const value = useMemo(() => ({ user, state, refresh, setPreferredLanguage, logout }), [user, state, refresh, setPreferredLanguage, logout]);
+  return <SessionContext.Provider value={value}>{children}<StartupLoader/></SessionContext.Provider>;
+}
+
+function StartupLoader() {
+  const { state } = useSession();
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    if (state === "loading") {
+      setVisible(true);
+      return;
+    }
+    const timeout = window.setTimeout(() => setVisible(false), 520);
+    return () => window.clearTimeout(timeout);
+  }, [state]);
+
+  if (!visible) return null;
+  return <div className={`startup-screen ${state === "loading" ? "" : "is-leaving"}`} role="status" aria-label="Loading">
+    <div className="startup-dots" aria-hidden="true">
+      <span/>
+      <span/>
+      <span/>
+    </div>
+  </div>;
 }
 
 export function useSession() {
   const context = useContext(SessionContext);
   if (!context) throw new Error("useSession must be used within SessionProvider");
   return context;
+}
+
+export function useAppLanguage() {
+  const { user } = useSession();
+  const language: AppLanguage = user?.preferred_language === "bn" ? "bn" : "en";
+  const t = useCallback((text: string) => translate(language, text), [language]);
+  useEffect(() => { document.documentElement.lang = language; }, [language]);
+  return { language, t };
 }

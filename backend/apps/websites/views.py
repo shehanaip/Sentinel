@@ -20,7 +20,11 @@ class WebsiteVerificationThrottle(UserRateThrottle):
 
 class WebsiteListCreateView(APIView):
     permission_classes = [IsAuthenticated]
-    throttle_classes = [WebsiteCreateThrottle]
+
+    def get_throttles(self):
+        if self.request.method == "POST":
+            return [WebsiteCreateThrottle()]
+        return []
 
     def get(self, request):
         websites = Website.objects.filter(owner=request.user).order_by("-created_at")
