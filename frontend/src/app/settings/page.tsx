@@ -4,7 +4,7 @@ import { ChangeEvent, FormEvent, useEffect, useMemo, useRef, useState } from "re
 import { AppFrame } from "@/components/app-frame";
 import { useSession } from "@/components/session-provider";
 import { useTheme, type AccentPalette, type ThemeMode } from "@/components/theme-provider";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, readApiJson } from "@/lib/api";
 
 const paletteOptions: { id: AccentPalette; name: string; color: string; tint: string }[] = [
   { id: "emerald", name: "Emerald", color: "#0b9574", tint: "#d9f7ed" },
@@ -17,6 +17,11 @@ const timeZones = ["UTC", "Asia/Dhaka", "Asia/Kolkata", "Asia/Karachi", "Asia/Du
 
 type Preferences = { name: string; avatar_data: string; notify_uptime: boolean; notify_security: boolean; preferred_language: string; country: string; timezone: string };
 type SettingsSection = "account" | "notifications" | "region" | "appearance";
+
+function getResponseMessage(payload: Record<string, unknown>) {
+  if (typeof payload.detail === "string") return payload.detail;
+  return Object.values(payload).flatMap(value => Array.isArray(value) ? value : [value]).filter((value): value is string => typeof value === "string").join(" ") || "The request could not be completed.";
+}
 
 export default function SettingsPage() {
   const { theme, palette, setTheme, setPalette } = useTheme();
@@ -35,8 +40,8 @@ export default function SettingsPage() {
     event?.preventDefault(); setBusy("profile"); setNotice(""); setError("");
     try {
       const response = await apiFetch("/api/auth/profile/", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(prefs) });
-      const data = await response.json();
-      if (!response.ok) throw new Error(typeof data.detail === "string" ? data.detail : Object.values(data).flat().join(" "));
+      const data = await readApiJson(response);
+      if (!response.ok) throw new Error(getResponseMessage(data));
       await refresh(); setNotice("Your preferences are saved.");
     } catch (e) { setError(e instanceof Error ? e.message : "Could not save settings."); }
     finally { setBusy(""); }
@@ -46,8 +51,8 @@ export default function SettingsPage() {
     event.preventDefault(); setBusy("password"); setNotice(""); setError("");
     try {
       const response = await apiFetch("/api/auth/password/", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(passwords) });
-      const data = await response.json();
-      if (!response.ok) throw new Error(typeof data.detail === "string" ? data.detail : Object.values(data).flat().join(" "));
+      const data = await readApiJson(response);
+      if (!response.ok) throw new Error(getResponseMessage(data));
       setPasswords({ current_password: "", new_password: "" }); setNotice("Password changed successfully.");
     } catch (e) { setError(e instanceof Error ? e.message : "Could not update password."); }
     finally { setBusy(""); }
