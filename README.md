@@ -1,5 +1,7 @@
 # Sentinel
 
+my sentinel project
+
 Sentinel is a website availability and configuration monitoring SaaS. See [the product specification](Sentinel_Product_Spec.md) and [the technology decision](docs/TECH_STACK.md).
 
 ## Local development
