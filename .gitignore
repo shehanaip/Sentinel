@@ -8,6 +8,7 @@ venv/
 node_modules/
 .next/
 out/
+staticfiles/
 
 # Environment and secrets
 .env

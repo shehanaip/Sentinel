@@ -46,3 +46,8 @@ The current foundation includes session authentication, verified website setup, 
 - `frontend/` - Next.js, React, TypeScript, Bootstrap 5, and custom CSS.
 - `backend/` - Django REST Framework with MongoDB official backend.
 - `docs/` - architecture and implementation decisions.
+
+## Hosting
+
+See [Render deployment](docs/DEPLOYMENT.md) for the Blueprint setup and
+MongoDB Atlas requirements.
