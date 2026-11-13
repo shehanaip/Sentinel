@@ -39,6 +39,11 @@ API service, and `NEXT_PUBLIC_API_URL` on the frontend service. Because
 `NEXT_PUBLIC_API_URL` is embedded during the Next.js build, redeploy the
 frontend after changing it.
 
+The API uses secure `SameSite=None` CSRF and session cookies in production so
+the browser can send them between the separately hosted frontend and API.
+Keep `FRONTEND_URL` set to the frontend's exact HTTPS origin; Django uses it
+for CORS and trusted CSRF origins.
+
 The API deploy runs `collectstatic` during the build and applies Django
 migrations before starting Gunicorn. Keep the API at one instance while using
 this startup migration approach. Add email environment variables in Render
