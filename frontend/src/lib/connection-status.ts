@@ -1,7 +1,8 @@
+import { API_URL } from "@/lib/api";
+
 export type ConnectionState = "checking" | "connected" | "unavailable";
 type Health = { status: string; database: string };
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 let state: ConnectionState = "checking";
 let request: Promise<void> | null = null;
 let interval: number | null = null;

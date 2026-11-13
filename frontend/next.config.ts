@@ -3,5 +3,7 @@ import dotenv from "dotenv";
 
 dotenv.config({ path: "../.env" });
 
-const nextConfig: NextConfig = {};
+const nextConfig: NextConfig = {
+  skipTrailingSlashRedirect: true,
+};
 export default nextConfig;

@@ -35,14 +35,13 @@ you create the Blueprint.
 The Blueprint sets the API's allowed host and frontend origin to match those
 service URLs. If Render assigns different URLs (for example, because a service
 name is unavailable), update `DJANGO_ALLOWED_HOSTS` and `FRONTEND_URL` on the
-API service, and `NEXT_PUBLIC_API_URL` on the frontend service. Because
-`NEXT_PUBLIC_API_URL` is embedded during the Next.js build, redeploy the
-frontend after changing it.
+API service, and `API_SERVER_URL` on the frontend service. The frontend proxies
+browser `/api/` requests to `API_SERVER_URL`, keeping session and CSRF cookies
+same-origin; rebuild and redeploy the frontend after changing that value.
 
-The API uses secure `SameSite=None` CSRF and session cookies in production so
-the browser can send them between the separately hosted frontend and API.
 Keep `FRONTEND_URL` set to the frontend's exact HTTPS origin; Django uses it
-for CORS and trusted CSRF origins.
+for CORS and trusted CSRF origins. `NEXT_PUBLIC_API_URL` remains the local
+development API URL in `.env`.
 
 The API deploy runs `collectstatic` during the build and applies Django
 migrations before starting Gunicorn. Keep the API at one instance while using
