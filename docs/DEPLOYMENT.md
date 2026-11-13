@@ -58,5 +58,18 @@ directory `backend`, build command `pip install -r requirements.txt`, and
 start command `python manage.py run_monitoring` only when you are ready for
 those recurring checks.
 
-Both web services use Render's free plan, which can sleep when idle. MongoDB
+Both web services use Render's free plan. A free web service spins down after
+15 minutes without inbound traffic and normally starts again when the next
+request arrives; waking it can take about a minute. The frontend retries safe
+API reads during transient startup errors and retries session recovery while
+the API is unavailable. Requests that change data are not automatically
+replayed, so retry those actions after the connection returns.
+
+Free services cannot be configured to stay continuously awake. Avoid periodic
+keep-awake pings: they work against the free plan's idle behavior and can use
+the monthly free instance hours. Upgrade the API service to a paid compute plan
+if it must remain available without cold starts. If the API remains unavailable
+after a minute, check the `sentinel-api` service's Render logs and
+`/api/health/`; repeated failures usually indicate a startup, database
+connectivity, or runtime issue rather than the normal idle spin-down. MongoDB
 Atlas is managed separately and may have its own costs and limits.

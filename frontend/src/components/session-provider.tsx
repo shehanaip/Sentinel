@@ -44,6 +44,12 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("sentinel-session-changed", handleSessionChange);
   }, [refresh]);
 
+  useEffect(() => {
+    if (state !== "unavailable") return;
+    const interval = window.setInterval(() => { void refresh(); }, 15000);
+    return () => window.clearInterval(interval);
+  }, [state, refresh]);
+
   const value = useMemo(() => ({ user, state, refresh, setPreferredLanguage, logout }), [user, state, refresh, setPreferredLanguage, logout]);
   return <SessionContext.Provider value={value}>{children}<StartupLoader/></SessionContext.Provider>;
 }
